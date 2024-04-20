@@ -7,6 +7,12 @@ const { StudentUser } = require("../models/userModel");
 
 ////////admin actions
 const getAllReport = asyncHandler(async (req, res) => {
+  const { isAdmin } = req.user;
+  if (!isAdmin) {
+    res.status(400);
+    throw new Error("Not authorized");
+  }
+
   const all = await ReportModel.find({});
   res.status(200).json(all);
 });

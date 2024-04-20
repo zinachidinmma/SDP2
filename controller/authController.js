@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const validator = require("validator");
 const asyncHandler = require("express-async-handler");
 const createToken = require("../middleware/createJwtToken");
+const { dorms, room_types, room_numbers } = require("../constant");
 
 //user
 const register = asyncHandler(async (req, res) => {
@@ -16,10 +17,18 @@ const register = asyncHandler(async (req, res) => {
       room_number,
       dorm,
       isAdmin,
+      room_type,
     } = req.body;
 
     // Check if any required fields are missing
-    if (!email || !password || !user_id || !first_name || !last_name) {
+    if (
+      !email ||
+      !password ||
+      !user_id ||
+      !first_name ||
+      !last_name ||
+      isAdmin == undefined
+    ) {
       res.status(400);
       throw new Error("All fields are mandatory!");
     }
@@ -30,66 +39,106 @@ const register = asyncHandler(async (req, res) => {
       throw new Error("Please enter a valid aun email!");
     }
 
-    // Check if email already exists based on isAdmin value
-    let exists;
-    if (isAdmin) {
-      exists = await AdminUser.findOne({ email });
-    } else {
-      exists = await StudentUser.findOne({ email });
-    }
-    if (exists) {
+    if (!isAdmin && (!user_id.startsWith("A") || user_id.length !== 9)) {
       res.status(400);
-      throw new Error("Email already exists");
+      throw new Error("Please enter a valid student ID ex: A000*****");
     }
 
-    // Check if student ID starts with "A" if isAdmin is false
-    if (!isAdmin && !user_id.startsWith("A")) {
-      res.status(400);
-      throw new Error("Student ID must start with 'A'!");
-    }
-
-    // Check if user ID is unique
+    const emailExist = await (isAdmin ? AdminUser : StudentUser).findOne({
+      email,
+    });
     const idExists = await (isAdmin ? AdminUser : StudentUser).findOne({
       user_id,
     });
+
+    // Check if user ID is unique
     if (idExists) {
       res.status(400);
-      throw new Error("User ID already exists");
+      throw new Error("User ID already in use");
+    }
+    if (emailExist) {
+      res.status(400);
+      throw new Error("User email already in use");
     }
 
-    const allowedDorm = ["AA", "BB", "CC"];
-    if (!allowedDorm.includes(dorm.toUpperCase())) {
+    if (!isAdmin && (!dorm || !room_number || !room_type)) {
       res.status(400);
-      throw new Error("Invalid Dorm! Allowed categories are: AA, BB, CC");
+      throw new Error("Student must enter a dorm and room number");
+    }
+
+    const allowedDorm = dorms;
+    const allowedRoomType = room_types;
+    const alllowedRoomNumber = room_numbers;
+    if (
+      !isAdmin &&
+      (!allowedDorm.includes(dorm.toUpperCase()) ||
+        !allowedRoomType.includes(room_type) ||
+        !alllowedRoomNumber.includes(room_number))
+    ) {
+      res.status(400);
+      throw new Error("Invalid input ");
+    }
+
+    // Check if the combination of room type and room number is valid
+    const isValidCombination =
+      (["3in1WF", "3in1F"].includes(room_type) &&
+        room_number >= "101" &&
+        room_number <= "105") ||
+      (["2in1WF", "2in1F"].includes(room_type) &&
+        room_number >= 106 &&
+        room_number <= 107);
+
+    if (!isValidCombination) {
+      res.status(400);
+      throw new Error(
+        `Invalid combination of room type '${room_type}' and room number '${room_number}'`
+      );
+    }
+
+    let maxOccupants;
+    if (room_number >= 101 && room_number <= 105) {
+      maxOccupants = 3;
+    } else if (room_number >= 106 && room_number <= 107) {
+      maxOccupants = 2;
+    } else {
+      maxOccupants = room_type.startsWith("3") ? 3 : 2;
+    }
+
+    // Check current occupancy of the room
+    const currentOccupancy = await StudentUser.countDocuments({
+      room_number,
+      dorm: dorm.toUpperCase(),
+    });
+
+    // Check if current occupancy exceeds the maximum
+    if (currentOccupancy >= maxOccupants) {
+      res.status(400);
+      throw new Error(`Room ${room_number} in ${dorm.toUpperCase()} is full`);
     }
 
     // Generate salt and hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create user based on isAdmin value
     let user;
     if (isAdmin) {
       user = await AdminUser.create({
-        email,
+        email: email,
         password: hashedPassword,
-        user_id,
-        first_name,
-        last_name,
+        user_id: user_id,
+        first_name: first_name,
+        last_name: last_name,
       });
     } else {
-      if (!room_number || !dorm) {
-        res.status(400);
-        throw new Error("All fields are mandatory for student registration!");
-      }
       user = await StudentUser.create({
-        email,
+        email: email,
         password: hashedPassword,
-        user_id,
-        first_name,
-        last_name,
-        room_number,
+        user_id: user_id,
+        first_name: first_name,
+        last_name: last_name,
+        room_number: room_number,
         dorm: dorm.toUpperCase(),
+        room_type: room_type,
       });
     }
 

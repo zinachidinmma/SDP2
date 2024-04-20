@@ -7,18 +7,22 @@ const reportSchema = mongoose.Schema({
   },
   description: {
     type: String,
-    required: [true, "Please provide a description"],
+    required: true,
   },
   statu: {
     type: String,
   },
   room_number: {
     type: Number,
-    required: [true, "Please enter you room number"],
+    required: true,
+  },
+  room_type: {
+    type: String,
+    required: true,
   },
   dorm: {
     type: String,
-    required: [true, "Please enter your dorm"],
+    required: true,
   },
   date: {
     type: Date,
@@ -33,15 +37,19 @@ const reportLogSchema = mongoose.Schema({
   },
   description: {
     type: String,
-    required: [true, "Please provide a description"],
+    required: true,
   },
   room_number: {
     type: Number,
-    required: [true, "Please enter you room number"],
+    required: true,
+  },
+  room_type: {
+    type: String,
+    required: true,
   },
   dorm: {
     type: String,
-    required: [true, "Please enter your dorm"],
+    required: true,
   },
   date: {
     type: Date,

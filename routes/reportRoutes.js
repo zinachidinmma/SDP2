@@ -27,7 +27,7 @@ router.patch(
 );
 
 //admin actions
-router.get("/all", getAllReport);
+router.get("/all", validatingToken, getAllReport);
 router.get("/category/:category", validatingToken, getByCategory);
 router.get("/dorm/:dorm", validatingToken, getByDorm);
 router.patch("/editReport/:id", validatingToken, updateReportStatus);

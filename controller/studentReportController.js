@@ -6,7 +6,7 @@ const { ReportModel, ReportLogModel } = require("../models/reportModel");
 
 const createReport = asyncHandler(async (req, res) => {
   try {
-    const { room_number, dorm, isAdmin } = req.user;
+    const { room_number, dorm, isAdmin, room_type } = req.user;
 
     if (isAdmin) {
       res.status(400);
@@ -22,11 +22,17 @@ const createReport = asyncHandler(async (req, res) => {
     }
 
     // Check if category is one of the allowed values
-    const allowedCategories = ["Water", "Electrical", "Building", "AC"];
+    const allowedCategories = [
+      "Plumbing",
+      "Electrical",
+      "Building",
+      "AC",
+      "Furniture",
+    ];
     if (!allowedCategories.includes(category)) {
       res.status(400);
       throw new Error(
-        "Invalid category! Allowed categories are: Water, Electrical, Building, AC"
+        "Invalid category! Allowed categories are: Plumbing, Electrical, Building, AC, Furniture"
       );
     }
 
@@ -51,6 +57,7 @@ const createReport = asyncHandler(async (req, res) => {
       description,
       dorm,
       room_number,
+      room_type,
       //status: stat, // corrected typo from "statu" to "status"
     });
 
@@ -87,7 +94,7 @@ const getStudentReport = asyncHandler(async (req, res) => {
 
 const deleteReport = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { isAdmin, room_number, dorm } = req.user;
+  const { isAdmin, room_number, dorm, room_type } = req.user;
 
   // Check if the user is an admin
   if (isAdmin) {
@@ -122,6 +129,7 @@ const deleteReport = asyncHandler(async (req, res) => {
     room_number: report.room_number,
     dorm: report.dorm,
     date: report.date,
+    room_type: report.room_type,
   });
 
   // Delete the report

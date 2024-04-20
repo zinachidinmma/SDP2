@@ -3,33 +3,37 @@ const mongoose = require("mongoose");
 const studentSchema = mongoose.Schema({
   email: {
     type: String,
-    required: [true, "Please enter a email"],
+    required: [true],
     unique: true,
   },
   password: {
     type: String,
-    required: [true, "Please enter a password"],
+    required: [true],
   },
   user_id: {
     type: String,
-    required: [true, "Please enter a student ID"],
+    required: [true],
     unique: true,
   },
   first_name: {
     type: String,
-    required: [true, "Please enter a first name"],
+    required: [true],
   },
   last_name: {
     type: String,
-    required: [true, "Please enter a second name"],
+    required: [true],
   },
   room_number: {
     type: Number,
-    required: [true, "Please enter you room number"],
+    required: [true],
   },
   dorm: {
     type: String,
-    required: [true, "Please enter your dorm"],
+    required: [true],
+  },
+  room_type: {
+    type: String,
+    required: [true],
   },
   isAdmin: {
     type: Boolean,
@@ -40,25 +44,25 @@ const studentSchema = mongoose.Schema({
 const adminSchema = mongoose.Schema({
   email: {
     type: String,
-    required: [true, "Please enter a email"],
+    required: [true],
     unique: true,
   },
   password: {
     type: String,
-    required: [true, "Please enter a password"],
+    required: [true],
   },
   user_id: {
     type: String,
-    required: [true, "Please enter a student ID"],
+    required: [true],
     unique: true,
   },
   first_name: {
     type: String,
-    required: [true, "Please enter a first name"],
+    required: [true],
   },
   last_name: {
     type: String,
-    required: [true, "Please enter a second name"],
+    required: [true],
   },
   isAdmin: {
     type: Boolean,
