@@ -1,6 +1,7 @@
 const express = require("express");
 const dotenv = require("dotenv").config();
 const userRoutes = require("./routes/authRoute");
+const constRoutes = require("./routes/constantRoute");
 const connectDb = require("./config/dbConnection");
 const reportRoute = require("./routes/reportRoutes");
 const errorHandler = require("./middleware/errorHandling");
@@ -19,6 +20,7 @@ app.use(express.json());
 app.use("/auth", userRoutes);
 app.use("/api/report", reportRoute);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use("/const", constRoutes);
 
 //error handler
 app.use(errorHandler);

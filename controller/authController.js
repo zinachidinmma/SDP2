@@ -4,6 +4,8 @@ const validator = require("validator");
 const asyncHandler = require("express-async-handler");
 const createToken = require("../middleware/createJwtToken");
 const { dorms, room_types, room_numbers } = require("../constant");
+const calculateMaxOccupancy = require("../middleware/calculateMaxOccupancy");
+const validateRoomCombination = require("../middleware/validateRoomCombination");
 
 //user
 const register = asyncHandler(async (req, res) => {
@@ -79,14 +81,7 @@ const register = asyncHandler(async (req, res) => {
       throw new Error("Invalid input ");
     }
 
-    // Check if the combination of room type and room number is valid
-    const isValidCombination =
-      (["3in1WF", "3in1F"].includes(room_type) &&
-        room_number >= "101" &&
-        room_number <= "105") ||
-      (["2in1WF", "2in1F"].includes(room_type) &&
-        room_number >= 106 &&
-        room_number <= 107);
+    const isValidCombination = validateRoomCombination(room_number, room_type);
 
     if (!isValidCombination) {
       res.status(400);
@@ -95,14 +90,7 @@ const register = asyncHandler(async (req, res) => {
       );
     }
 
-    let maxOccupants;
-    if (room_number >= 101 && room_number <= 105) {
-      maxOccupants = 3;
-    } else if (room_number >= 106 && room_number <= 107) {
-      maxOccupants = 2;
-    } else {
-      maxOccupants = room_type.startsWith("3") ? 3 : 2;
-    }
+    const maxOccupants = calculateMaxOccupancy(room_number);
 
     // Check current occupancy of the room
     const currentOccupancy = await StudentUser.countDocuments({
