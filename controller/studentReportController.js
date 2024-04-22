@@ -4,6 +4,8 @@ const asyncHandler = require("express-async-handler");
 //Models required for report operations
 const { ReportModel, ReportLogModel } = require("../models/reportModel");
 
+const { dorms, room_types, room_numbers, categories } = require("../constant");
+
 const createReport = asyncHandler(async (req, res) => {
   try {
     const { room_number, dorm, isAdmin, room_type } = req.user;
@@ -22,13 +24,7 @@ const createReport = asyncHandler(async (req, res) => {
     }
 
     // Check if category is one of the allowed values
-    const allowedCategories = [
-      "Plumbing",
-      "Electrical",
-      "Building",
-      "AC",
-      "Furniture",
-    ];
+    const allowedCategories = categories;
     if (!allowedCategories.includes(category)) {
       res.status(400);
       throw new Error(

@@ -21,6 +21,7 @@ const register = asyncHandler(async (req, res) => {
       isAdmin,
       room_type,
     } = req.body;
+    let user;
 
     // Check if any required fields are missing
     if (
@@ -63,6 +64,22 @@ const register = asyncHandler(async (req, res) => {
       throw new Error("User email already in use");
     }
 
+    // Generate salt and hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    if (isAdmin) {
+      user = await AdminUser.create({
+        email: email,
+        password: hashedPassword,
+        user_id: user_id,
+        first_name: first_name,
+        last_name: last_name,
+      });
+      console.log(`User ${user}`);
+      res.status(200).json(user);
+    }
+
     if (!isAdmin && (!dorm || !room_number || !room_type)) {
       res.status(400);
       throw new Error("Student must enter a dorm and room number");
@@ -83,7 +100,7 @@ const register = asyncHandler(async (req, res) => {
 
     const isValidCombination = validateRoomCombination(room_number, room_type);
 
-    if (!isValidCombination) {
+    if (!isAdmin && !isValidCombination) {
       res.status(400);
       throw new Error(
         `Invalid combination of room type '${room_type}' and room number '${room_number}'`
@@ -98,26 +115,15 @@ const register = asyncHandler(async (req, res) => {
       dorm: dorm.toUpperCase(),
     });
 
+    const c = currentOccupancy >= maxOccupants;
+
     // Check if current occupancy exceeds the maximum
-    if (currentOccupancy >= maxOccupants) {
+    if (!isAdmin && c) {
       res.status(400);
       throw new Error(`Room ${room_number} in ${dorm.toUpperCase()} is full`);
     }
 
-    // Generate salt and hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    let user;
-    if (isAdmin) {
-      user = await AdminUser.create({
-        email: email,
-        password: hashedPassword,
-        user_id: user_id,
-        first_name: first_name,
-        last_name: last_name,
-      });
-    } else {
+    if (!isAdmin) {
       user = await StudentUser.create({
         email: email,
         password: hashedPassword,
@@ -128,6 +134,8 @@ const register = asyncHandler(async (req, res) => {
         dorm: dorm.toUpperCase(),
         room_type: room_type,
       });
+      console.log(`User ${user}`);
+      res.status(200).json(user);
     }
 
     res.status(200).json(user);
@@ -186,7 +194,17 @@ const login = asyncHandler(async (req, res) => {
   }
 });
 
+const getUserInfo = asyncHandler(async (req, res) => {
+  const user = req.user;
+  if (!user) {
+    res(400);
+    throw new Error("Not authenticated");
+  }
+  res.status(200).json(user);
+});
+
 module.exports = {
   login,
   register,
+  getUserInfo,
 };

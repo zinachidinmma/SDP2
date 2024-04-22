@@ -14,6 +14,11 @@ const {
   getLoggedReports,
   getLoggedReportsByCategory,
 } = require("../controller/adminReportController");
+const {
+  getTotalReports,
+  getTotalCategoriesReports,
+  getTotalStatusReports,
+} = require("../controller/statisticController");
 const validatingToken = require("../middleware/validatingToken");
 
 //student acctions
@@ -34,5 +39,16 @@ router.patch("/editReport/:id", validatingToken, updateReportStatus);
 router.get("/getAllStudent", validatingToken, getAllStudents);
 router.get("/getLogs", validatingToken, getLoggedReports);
 router.get("/getLogCat/:category", validatingToken, getLoggedReportsByCategory);
+router.get("/getTotalReports", validatingToken, getTotalReports);
+router.get(
+  "/getTotalReports/:category",
+  validatingToken,
+  getTotalCategoriesReports
+);
+router.get(
+  "/getTotalCategoriesStatusReports/:status",
+  validatingToken,
+  getTotalStatusReports
+);
 
 module.exports = router;

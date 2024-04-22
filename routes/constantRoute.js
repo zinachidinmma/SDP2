@@ -29,4 +29,11 @@ router.get("/dorms", (req, res) => {
   });
 });
 
+router.get("/categories", (req, res) => {
+  res.json({
+    message: "Permitted categories",
+    data: permittedConstants.categories,
+  });
+});
+
 module.exports = router;
