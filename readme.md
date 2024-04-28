@@ -1,7 +1,3 @@
-Sure, here's a template for your API's README file:
-
----
-
 # Student Reporting System API
 
 Welcome to the Student Reporting System API documentation! This API allows students and administrators to manage reports related to various issues within the campus dormitories.
